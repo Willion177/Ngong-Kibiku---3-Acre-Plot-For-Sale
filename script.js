@@ -16,47 +16,20 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function createSimplePlotPin() {
-    const container = document.createElement('div');
-    container.style.cssText = `
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        cursor: pointer;
-    `;
-    
     const pin = document.createElement('div');
     pin.style.cssText = `
-        width: 40px;
+        width: 32px;
         height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 32px;
-        filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6));
+        font-size: 28px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6));
+        cursor: pointer;
     `;
     pin.textContent = '📍';
     
-    const label = document.createElement('div');
-    label.style.cssText = `
-        background: linear-gradient(135deg, #16a34a 0%, #059669 100%);
-        color: white;
-        padding: 6px 14px;
-        border-radius: 6px;
-        font-size: 12px;
-        font-weight: bold;
-        white-space: nowrap;
-        box-shadow: 0 3px 8px rgba(22, 163, 74, 0.5);
-        border: 2px solid #4ade80;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    `;
-    label.textContent = 'PLOT FOR SALE';
-    
-    container.appendChild(pin);
-    container.appendChild(label);
-    
-    return container;
+    return pin;
 }
 
 function initRegionalMap() {
@@ -284,10 +257,11 @@ function startTour() {
 
     if (currentView === 'regional') {
         const tourStops = [
-            { center: KAHARA_RD_START, zoom: 13, pitch: 45, bearing: 60, duration: 2500 },
-            { center: [36.638, -1.348], zoom: 13.5, pitch: 48, bearing: 40, duration: 2500 },
-            { center: [36.628, -1.345], zoom: 14, pitch: 50, bearing: 20, duration: 2500 },
-            { center: PLOT_CENTER, zoom: 15, pitch: 55, bearing: 0, duration: 2500 }
+            { center: KAHARA_RD_START, zoom: 12, pitch: 40, bearing: 0, duration: 3000 },
+            { center: [36.645, -1.355], zoom: 12.5, pitch: 45, bearing: 45, duration: 2500 },
+            { center: [36.635, -1.349], zoom: 13, pitch: 48, bearing: 90, duration: 2500 },
+            { center: [36.628, -1.344], zoom: 14, pitch: 50, bearing: 135, duration: 2500 },
+            { center: PLOT_CENTER, zoom: 15, pitch: 55, bearing: 0, duration: 3000 }
         ];
         runTour(map, tourStops);
     } else {
