@@ -535,19 +535,27 @@ body {
     }
 }
 
+/* Hide Mapbox Attribution/Watermark */
+.mapboxgl-ctrl-attrib {
+    display: none !important;
+}
+
 /* Watermark Styles */
 .watermark {
     position: absolute;
-    bottom: 10px;
+    bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
-    color: rgba(255, 255, 255, 0.15); /* More transparent */
-    font-size: 0.8rem;
-    z-index: 5; /* Below panels, above map */
-    pointer-events: none; /* Allow map interaction through watermark */
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 0.75rem;
+    z-index: 5;
+    pointer-events: none;
     text-align: center;
-    padding: 5px 10px;
-    background: rgba(0, 0, 0, 0.05); /* Very subtle background */
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.1);
     border-radius: 3px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
 }
 
