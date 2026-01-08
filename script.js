@@ -1,18 +1,14 @@
-// Mapbox Access Token
 mapboxgl.accessToken = 'pk.eyJ1Ijoia2lyb25qaWdnIiwiYSI6ImNtaDc5enB6NzBxZXQya3NpbHh3cTdxaTUifQ.PvzCNIg-j8EbgpJqHZK7sQ';
 
-// COORDINATES
 const PLOT_CENTER = [36.623998, -1.343562];
-const KAHARA_RD_START = [36.65432597942627, -1.3615885863095807]; // Regional start (Kahara Rd beginning)
-const LOCAL_VIEW_START = [36.63186285028473, -1.3465922684695546]; // Local start
+const KAHARA_RD_START = [36.65432597942627, -1.3615885863095807];
+const LOCAL_VIEW_START = [36.63186285028473, -1.3465922684695546];
 
-// State
 let regionalMap = null;
 let localMap = null;
 let isTouring = false;
 let currentView = 'regional';
 
-// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     initRegionalMap();
     initLocalMap();
@@ -95,7 +91,6 @@ function initRegionalMap() {
             }
         });
 
-        // Get route from Kahara Rd start to Plot (follows actual roads)
         try {
             const response = await fetch(
                 `https://api.mapbox.com/directions/v5/mapbox/driving/${KAHARA_RD_START[0]},${KAHARA_RD_START[1]};${PLOT_CENTER[0]},${PLOT_CENTER[1]}?geometries=geojson&access_token=${mapboxgl.accessToken}`
@@ -123,7 +118,6 @@ function initRegionalMap() {
             console.error('Error fetching regional route:', error);
         }
 
-        // Add simple plot pin
         const plotPin = createSimplePlotPin();
         new mapboxgl.Marker({ element: plotPin, anchor: 'bottom' })
             .setLngLat(PLOT_CENTER)
@@ -165,7 +159,6 @@ function initLocalMap() {
             }
         });
 
-        // Get route from local start point to Plot
         try {
             const response = await fetch(
                 `https://api.mapbox.com/directions/v5/mapbox/driving/${LOCAL_VIEW_START[0]},${LOCAL_VIEW_START[1]};${PLOT_CENTER[0]},${PLOT_CENTER[1]}?geometries=geojson&access_token=${mapboxgl.accessToken}`
@@ -193,7 +186,6 @@ function initLocalMap() {
             console.error('Error fetching local route:', error);
         }
 
-        // Add simple plot pin
         const plotPin = createSimplePlotPin();
         new mapboxgl.Marker({ element: plotPin, anchor: 'bottom' })
             .setLngLat(PLOT_CENTER)
@@ -294,53 +286,35 @@ function startTour() {
         const tourStops = [
             { center: KAHARA_RD_START, zoom: 13, pitch: 45, bearing: 60, duration: 2500 },
             { center: [36.638, -1.348], zoom: 13.5, pitch: 48, bearing: 40, duration: 2500 },
-            { center: [36.630, -1.345], zoom: 14, pitch: 50, bearing: 20, duration: 2500 },
-            { center: [36.626, -1.344], zoom: 14.5, pitch: 52, bearing: 0, duration: 2500 },
-            { center: PLOT_CENTER, zoom: 16, pitch: 55, bearing: 0, duration: 3500 }
+            { center: [36.628, -1.345], zoom: 14, pitch: 50, bearing: 20, duration: 2500 },
+            { center: PLOT_CENTER, zoom: 15, pitch: 55, bearing: 0, duration: 2500 }
         ];
-
-        let currentStop = 0;
-        const flyToNext = () => {
-            if (currentStop < tourStops.length) {
-                const stop = tourStops[currentStop];
-                map.flyTo({ ...stop, essential: true });
-                currentStop++;
-                setTimeout(flyToNext, stop.duration);
-            } else {
-                setTimeout(() => {
-                    map.stop();
-                    map.setPitch(55);
-                    map.setBearing(0);
-                    endTour();
-                }, 1500);
-            }
-        };
-        flyToNext();
+        runTour(map, tourStops);
     } else {
         const tourStops = [
-            { center: [36.621, -1.341], zoom: 15, pitch: 55, bearing: 0, duration: 2000 },
-            { center: PLOT_CENTER, zoom: 16, pitch: 58, bearing: 90, duration: 2000 },
-            { center: PLOT_CENTER, zoom: 16.5, pitch: 60, bearing: 180, duration: 2000 },
-            { center: PLOT_CENTER, zoom: 16.5, pitch: 60, bearing: 270, duration: 2000 },
-            { center: PLOT_CENTER, zoom: 16, pitch: 55, bearing: 0, duration: 2500 }
+            { center: LOCAL_VIEW_START, zoom: 15, pitch: 50, bearing: 20, duration: 2000 },
+            { center: [36.627, -1.344], zoom: 15.5, pitch: 55, bearing: 0, duration: 2000 },
+            { center: PLOT_CENTER, zoom: 16, pitch: 60, bearing: -20, duration: 2000 }
         ];
-
-        let currentStop = 0;
-        const flyToNext = () => {
-            if (currentStop < tourStops.length) {
-                const stop = tourStops[currentStop];
-                map.flyTo({ ...stop, essential: true });
-                currentStop++;
-                setTimeout(flyToNext, stop.duration);
-            } else {
-                setTimeout(() => {
-                    map.stop();
-                    endTour();
-                }, 1000);
-            }
-        };
-        flyToNext();
+        runTour(map, tourStops);
     }
+}
+
+function runTour(map, stops) {
+    if (!stops.length) {
+        endTour();
+        return;
+    }
+
+    const stop = stops.shift();
+    map.flyTo({
+        ...stop,
+        essential: true
+    });
+
+    map.once('moveend', () => {
+        setTimeout(() => runTour(map, stops), 500);
+    });
 }
 
 function endTour() {
@@ -357,31 +331,18 @@ function endTour() {
 
 function resetView() {
     const map = currentView === 'regional' ? regionalMap : localMap;
+    const options = currentView === 'regional' 
+        ? { center: [36.64, -1.35], zoom: 12, pitch: 50, bearing: 0 }
+        : { center: PLOT_CENTER, zoom: 15, pitch: 55, bearing: -20 };
     
-    if (currentView === 'regional') {
-        map.flyTo({
-            center: [36.64, -1.35],
-            zoom: 12,
-            pitch: 50,
-            bearing: 0,
-            duration: 2000
-        });
-    } else {
-        map.flyTo({
-            center: PLOT_CENTER,
-            zoom: 15,
-            pitch: 55,
-            bearing: -20,
-            duration: 2000
-        });
-    }
+    map.flyTo({
+        ...options,
+        duration: 1500,
+        essential: true
+    });
 }
 
 function hideLoading() {
     const loading = document.getElementById('loading');
-    if (regionalMap && localMap) {
-        setTimeout(() => {
-            loading.classList.add('hidden');
-        }, 1000);
-    }
+    loading.classList.add('hidden');
 }
